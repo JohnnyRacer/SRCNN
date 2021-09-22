@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
+import torch_xla.core.xla_model as xm
 from data import DatasetFromFolder
 from model import SRCNN
 
@@ -13,11 +13,13 @@ parser = argparse.ArgumentParser(description='SRCNN training parameters')
 parser.add_argument('--zoom_factor', type=int, required=True)
 parser.add_argument('--nb_epochs', type=int, default=200)
 parser.add_argument('--cuda', action='store_true')
+parser.add_argument('--tpu', default=True)
 args = parser.parse_args()
 
-device = torch.device("cuda:0" if (torch.cuda.is_available() and args.cuda) else "cpu")
+device = xm.xla_device() if args.tpu else torch.device("cuda:0" if (torch.cuda.is_available() and args.cuda) else "cpu")
 torch.manual_seed(0)
-torch.cuda.manual_seed(0)
+if (torch.cuda.is_available():
+    torch.cuda.manual_seed(0)
 
 # Parameters
 BATCH_SIZE = 4
